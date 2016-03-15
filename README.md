@@ -13,3 +13,14 @@ cd dist/
 Then, I extracted the content of `dist/` into a new git repo, I C/P the official `package.json` and updated the field `main`.
 
 I pushed and ran `npm install --save networklocum/bootstrap-0.12-patched` into bart
+
+### Use 
+
+(you can refer to the official documentation at (https://angular-ui.github.io/bootstrap/) )
+
+```javascript
+// in your modal's controller
+$scope.$on("modal.closing", (event) => {
+    if(true) event.preventDefault()
+})
+```
