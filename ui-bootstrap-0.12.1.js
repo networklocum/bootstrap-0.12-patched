@@ -2,7 +2,7 @@
  * angular-ui-bootstrap
  * http://angular-ui.github.io/bootstrap/
 
- * Version: 0.12.1 - 2016-03-15
+ * Version: 0.12.1 - 2016-07-26
  * License: MIT
  */
 angular.module("ui.bootstrap", ["ui.bootstrap.transition","ui.bootstrap.collapse","ui.bootstrap.accordion","ui.bootstrap.alert","ui.bootstrap.bindHtml","ui.bootstrap.buttons","ui.bootstrap.carousel","ui.bootstrap.dateparser","ui.bootstrap.position","ui.bootstrap.datepicker","ui.bootstrap.dropdown","ui.bootstrap.modal","ui.bootstrap.pagination","ui.bootstrap.tooltip","ui.bootstrap.popover","ui.bootstrap.progressbar","ui.bootstrap.rating","ui.bootstrap.tabs","ui.bootstrap.timepicker","ui.bootstrap.typeahead"]);
@@ -3564,11 +3564,20 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
       //a callback executed when a match is selected
       var onSelectCallback = $parse(attrs.typeaheadOnSelect);
 
+      //should it select highlighted popup value when losing focus?
+      var isSelectOnBlur = angular.isDefined(attrs.typeaheadSelectOnBlur) ? originalScope.$eval(attrs.typeaheadSelectOnBlur) : false;
+
+      //binding to a variable that indicates if there were no results after the query is completed
+      var isNoResultsSetter = $parse(attrs.typeaheadNoResults).assign || angular.noop;
+
       var inputFormatter = attrs.typeaheadInputFormatter ? $parse(attrs.typeaheadInputFormatter) : undefined;
 
       var appendToBody =  attrs.typeaheadAppendToBody ? originalScope.$eval(attrs.typeaheadAppendToBody) : false;
 
       var focusFirst = originalScope.$eval(attrs.typeaheadFocusFirst) !== false;
+
+      //If input matches an item of the list exactly, select it automatically
+      var selectOnExact = attrs.typeaheadSelectOnExact ? originalScope.$eval(attrs.typeaheadSelectOnExact) : false;
 
       //INTERNAL VARIABLES
 
@@ -3630,10 +3639,20 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
         }
       });
 
+      var inputIsExactMatch = function(inputValue, index) {
+
+        if (scope.matches.length > index && inputValue) {
+          return inputValue.toUpperCase() === scope.matches[index].label.toUpperCase();
+        }
+
+        return false;
+      };
+
       var getMatchesAsync = function(inputValue) {
 
         var locals = {$viewValue: inputValue};
         isLoadingSetter(originalScope, true);
+        isNoResultsSetter(originalScope, false);
         $q.when(parserResult.source(originalScope, locals)).then(function(matches) {
 
           //it might happen that several async queries were in progress if a user were typing fast
@@ -3643,6 +3662,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
             if (matches.length > 0) {
 
               scope.activeIdx = focusFirst ? 0 : -1;
+              isNoResultsSetter(originalScope, false);
               scope.matches.length = 0;
 
               //transform labels
@@ -3663,8 +3683,15 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
               scope.position.top = scope.position.top + element.prop('offsetHeight');
 
               element.attr('aria-expanded', true);
+
+
+              //Select the single remaining option if user input matches
+              if (selectOnExact && scope.matches.length === 1 && inputIsExactMatch(inputValue, 0)) {
+                scope.select(0);
+              }
             } else {
               resetMatches();
+              isNoResultsSetter(originalScope, true);
             }
           }
           if (onCurrentRequest) {
@@ -3673,6 +3700,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
         }, function(){
           resetMatches();
           isLoadingSetter(originalScope, false);
+          isNoResultsSetter(originalScope, true);
         });
       };
 
@@ -3681,7 +3709,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
       //we need to propagate user's query so we can higlight matches
       scope.query = undefined;
 
-      //Declare the timeout promise var outside the function scope so that stacked calls can be cancelled later 
+      //Declare the timeout promise var outside the function scope so that stacked calls can be cancelled later
       var timeoutPromise;
 
       var scheduleSearchWithTimeout = function(inputValue) {

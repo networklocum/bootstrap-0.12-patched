@@ -2541,8 +2541,11 @@ appendToBody: false
 
     <h4>Asynchronous results</h4>
     <pre>Model: {{asyncSelected | json}}</pre>
-    <input type="text" ng-model="asyncSelected" placeholder="Locations loaded via $http" typeahead="address for address in getLocation($viewValue)" typeahead-loading="loadingLocations" class="form-control">
+    <input type="text" ng-model="asyncSelected" placeholder="Locations loaded via $http" typeahead="address for address in getLocation($viewValue)" typeahead-loading="loadingLocations" typeahead-no-results="noResults" class="form-control">
     <i ng-show="loadingLocations" class="glyphicon glyphicon-refresh"></i>
+    <div ng-show="noResults">
+      <i class="glyphicon glyphicon-remove"></i> No Results Found
+    </div>
 
     <h4>Custom templates for results</h4>
     <pre>Model: {{customSelected | json}}</pre>
@@ -2589,6 +2592,9 @@ Binding to a variable that indicates if matches are being retrieved asynchronous
 <li><p><code>typeahead-min-length</code> <i class="glyphicon glyphicon-eye-open"></i>
 <em>(Defaults: 1)</em> :
 Minimal no of characters that needs to be entered before typeahead kicks-in</p></li>
+<li><p><code>typeahead-no-results</code> <i class="glyphicon glyphicon-eye-open"></i>
+<em>(Defaults: angular.noop)</em> :
+Binding to a variable that indicates if no matching results were found</p></li>
 <li><p><code>typeahead-on-select($item, $model, $label)</code>
 <em>(Defaults: null)</em> :
 A callback executed when a match is selected</p></li>
@@ -2627,8 +2633,11 @@ Should the first match automatically be focused as you type?</p></li>
 
     &lt;h4&gt;Asynchronous results&lt;/h4&gt;
     &lt;pre&gt;Model: {{asyncSelected | json}}&lt;/pre&gt;
-    &lt;input type=&quot;text&quot; ng-model=&quot;asyncSelected&quot; placeholder=&quot;Locations loaded via $http&quot; typeahead=&quot;address for address in getLocation($viewValue)&quot; typeahead-loading=&quot;loadingLocations&quot; class=&quot;form-control&quot;&gt;
+    &lt;input type=&quot;text&quot; ng-model=&quot;asyncSelected&quot; placeholder=&quot;Locations loaded via $http&quot; typeahead=&quot;address for address in getLocation($viewValue)&quot; typeahead-loading=&quot;loadingLocations&quot; typeahead-no-results=&quot;noResults&quot; class=&quot;form-control&quot;&gt;
     &lt;i ng-show=&quot;loadingLocations&quot; class=&quot;glyphicon glyphicon-refresh&quot;&gt;&lt;/i&gt;
+    &lt;div ng-show=&quot;noResults&quot;&gt;
+      &lt;i class=&quot;glyphicon glyphicon-remove&quot;&gt;&lt;/i&gt; No Results Found
+    &lt;/div&gt;
 
     &lt;h4&gt;Custom templates for results&lt;/h4&gt;
     &lt;pre&gt;Model: {{customSelected | json}}&lt;/pre&gt;
